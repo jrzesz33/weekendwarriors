@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go mod init:*)",
+      "Bash(go mod:*)",
+      "Bash(chmod:*)",
+      "Bash(go build:*)",
+      "Bash(curl:*)",
+      "Bash(./bin/golf-gamez:*)",
+      "Bash(pkill:*)",
+      "Bash(GOOS=js GOARCH=wasm go build -o web/main.wasm main.go)",
+      "Bash(./build.sh)",
+      "Bash(go:*)",
+      "Read(//usr/**)",
+      "Bash(python3:*)",
+      "Bash(awk:*)",
+      "Bash(echo:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

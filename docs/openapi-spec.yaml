@@ -1,0 +1,1086 @@
+openapi: 3.0.3
+info:
+  title: Golf Gamez API
+  description: |
+    API for tracking golf game scores and side bets for weekend warriors.
+
+    ## Features
+    - Anonymous game creation with shareable links
+    - Real-time score tracking for up to 4 players
+    - Two side bets: Best Nine and Putt Putt Poker
+    - Live leaderboards and spectator mode
+    - Diamond Run golf course integration
+
+    ## Authentication
+    Uses token-based access with two token types:
+    - **Share Token**: Full read/write access for players
+    - **Spectator Token**: Read-only access for viewing
+
+    ## Rate Limiting
+    - 10 game creations per hour per IP
+    - 100 score updates per minute per IP
+    - 1000 API calls per hour per IP
+  version: 1.0.0
+  contact:
+    name: Golf Gamez Support
+    url: https://github.com/golf-gamez/api
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.golfgamez.com/v1
+    description: Production server
+  - url: https://staging-api.golfgamez.com/v1
+    description: Staging server
+  - url: http://localhost:8080/v1
+    description: Development server
+
+security:
+  - GameToken: []
+  - SpectatorToken: []
+  - {}
+
+paths:
+  /games:
+    post:
+      summary: Create new golf game
+      description: Creates a new golf game session with specified settings
+      operationId: createGame
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGameRequest'
+            examples:
+              full_game:
+                summary: Full featured game
+                value:
+                  course: "diamond-run"
+                  side_bets: ["best-nine", "putt-putt-poker"]
+                  handicap_enabled: true
+              simple_game:
+                summary: Basic game without side bets
+                value:
+                  course: "diamond-run"
+                  handicap_enabled: false
+      responses:
+        '201':
+          description: Game created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /games/{gameId}:
+    get:
+      summary: Get game details
+      description: Retrieve full game information including players and current state
+      operationId: getGame
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Game details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete game
+      description: Permanently delete a golf game and all associated data
+      operationId: deleteGame
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '204':
+          description: Game deleted successfully
+        '404':
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /games/{gameId}/start:
+    post:
+      summary: Start game
+      description: Begin the golf game, enabling score recording
+      operationId: startGame
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Game started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameStatus'
+        '400':
+          description: Cannot start game (e.g., no players)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /games/{gameId}/complete:
+    post:
+      summary: Complete game
+      description: Mark game as completed and calculate final results
+      operationId: completeGame
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Game completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameCompletionResult'
+
+  /games/{gameId}/players:
+    get:
+      summary: Get all players in game
+      description: Retrieve list of all players in the specified game
+      operationId: getPlayers
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Players retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayersResponse'
+
+    post:
+      summary: Add player to game
+      description: Add a new player to the golf game
+      operationId: addPlayer
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlayerRequest'
+      responses:
+        '201':
+          description: Player added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '400':
+          description: Invalid player data or game full
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /games/{gameId}/players/{playerId}:
+    get:
+      summary: Get specific player
+      description: Retrieve detailed information about a specific player
+      operationId: getPlayer
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/PlayerId'
+      responses:
+        '200':
+          description: Player retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerDetail'
+
+    put:
+      summary: Update player
+      description: Update player information (name, handicap)
+      operationId: updatePlayer
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/PlayerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlayerRequest'
+      responses:
+        '200':
+          description: Player updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+
+    delete:
+      summary: Remove player from game
+      description: Remove a player from the golf game
+      operationId: removePlayer
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/PlayerId'
+      responses:
+        '204':
+          description: Player removed successfully
+
+  /games/{gameId}/players/{playerId}/scores:
+    post:
+      summary: Record score for hole
+      description: Record a player's score for a specific hole
+      operationId: recordScore
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/PlayerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoreRequest'
+      responses:
+        '201':
+          description: Score recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Score'
+
+  /games/{gameId}/players/{playerId}/scores/{hole}:
+    put:
+      summary: Update score for hole
+      description: Update a previously recorded score
+      operationId: updateScore
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/PlayerId'
+        - $ref: '#/components/parameters/Hole'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateScoreRequest'
+      responses:
+        '200':
+          description: Score updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Score'
+
+  /games/{gameId}/scorecard:
+    get:
+      summary: Get game scorecard
+      description: Retrieve complete scorecard for all players
+      operationId: getGameScorecard
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Scorecard retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameScorecard'
+
+  /games/{gameId}/leaderboard:
+    get:
+      summary: Get game leaderboard
+      description: Retrieve current leaderboard standings
+      operationId: getLeaderboard
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Leaderboard retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Leaderboard'
+
+  /games/{gameId}/side-bets/best-nine:
+    get:
+      summary: Get Best Nine standings
+      description: Retrieve current Best Nine side bet standings
+      operationId: getBestNineStandings
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Best Nine standings retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BestNineStandings'
+
+  /games/{gameId}/side-bets/putt-putt-poker:
+    get:
+      summary: Get Putt Putt Poker status
+      description: Retrieve current Putt Putt Poker side bet status
+      operationId: getPuttPuttPokerStatus
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Putt Putt Poker status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PuttPuttPokerStatus'
+
+  /games/{gameId}/side-bets/putt-putt-poker/deal:
+    post:
+      summary: Deal final poker cards
+      description: Deal final cards and determine poker hand winner
+      operationId: dealPokerCards
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '201':
+          description: Cards dealt successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PokerDealResult'
+
+  /spectate/{spectatorToken}:
+    get:
+      summary: Spectate game
+      description: View game in spectator mode (read-only)
+      operationId: spectateGame
+      security:
+        - SpectatorToken: []
+      parameters:
+        - name: spectatorToken
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^st_[a-zA-Z0-9]{20}$'
+      responses:
+        '200':
+          description: Spectator view retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpectatorView'
+
+components:
+  securitySchemes:
+    GameToken:
+      type: http
+      scheme: bearer
+      bearerFormat: gt_abc123def456ghi789
+      description: Game share token for full read/write access
+    SpectatorToken:
+      type: http
+      scheme: bearer
+      bearerFormat: st_abc123def456ghi789
+      description: Spectator token for read-only access
+
+  parameters:
+    GameId:
+      name: gameId
+      in: path
+      required: true
+      description: Unique game identifier or share token
+      schema:
+        type: string
+        pattern: '^(game_[a-zA-Z0-9]{15}|gt_[a-zA-Z0-9]{20})$'
+        example: "game_abc123def456"
+
+    PlayerId:
+      name: playerId
+      in: path
+      required: true
+      description: Unique player identifier
+      schema:
+        type: string
+        pattern: '^player_[a-zA-Z0-9]{15}$'
+        example: "player_123abc456def"
+
+    Hole:
+      name: hole
+      in: path
+      required: true
+      description: Hole number (1-18)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 18
+        example: 8
+
+  schemas:
+    CreateGameRequest:
+      type: object
+      required:
+        - course
+      properties:
+        course:
+          type: string
+          enum: ["diamond-run"]
+          description: Golf course identifier
+        side_bets:
+          type: array
+          items:
+            type: string
+            enum: ["best-nine", "putt-putt-poker"]
+          description: Enabled side bets
+          default: []
+        handicap_enabled:
+          type: boolean
+          description: Whether handicap calculations are enabled
+          default: true
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: '^game_[a-zA-Z0-9]{15}$'
+          example: "game_abc123def456"
+        course:
+          type: string
+          example: "diamond-run"
+        status:
+          $ref: '#/components/schemas/GameStatus'
+        handicap_enabled:
+          type: boolean
+        side_bets:
+          type: array
+          items:
+            type: string
+            enum: ["best-nine", "putt-putt-poker"]
+        share_link:
+          type: string
+          format: uri
+          example: "https://api.golfgamez.com/games/gt_abc123def456ghi789"
+        spectator_link:
+          type: string
+          format: uri
+          example: "https://api.golfgamez.com/spectate/st_abc123def456ghi789"
+        current_hole:
+          type: integer
+          minimum: 1
+          maximum: 18
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        course_info:
+          $ref: '#/components/schemas/CourseInfo'
+        final_results:
+          $ref: '#/components/schemas/FinalResults'
+          nullable: true
+
+    GameStatus:
+      type: string
+      enum: ["setup", "in_progress", "completed", "abandoned"]
+      description: |
+        Game status values:
+        - setup: Game created but not started
+        - in_progress: Game is active
+        - completed: All holes finished
+        - abandoned: Game ended early
+
+    CreatePlayerRequest:
+      type: object
+      required:
+        - name
+        - handicap
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "John Doe"
+        handicap:
+          type: number
+          minimum: 0
+          maximum: 54
+          multipleOf: 0.1
+          example: 18.5
+        gender:
+          type: string
+          enum: ["male", "female", "other"]
+          description: Used for handicap suggestions
+
+    Player:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: '^player_[a-zA-Z0-9]{15}$'
+        name:
+          type: string
+        handicap:
+          type: number
+          minimum: 0
+          maximum: 54
+        gender:
+          type: string
+          enum: ["male", "female", "other"]
+        position:
+          type: integer
+          minimum: 1
+          maximum: 4
+        game_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        stats:
+          $ref: '#/components/schemas/PlayerStats'
+
+    PlayerStats:
+      type: object
+      properties:
+        holes_completed:
+          type: integer
+          minimum: 0
+          maximum: 18
+        current_score:
+          type: string
+          example: "+5"
+        total_putts:
+          type: integer
+          minimum: 0
+        poker_cards:
+          type: integer
+          minimum: 0
+        best_nine_score:
+          type: string
+          example: "+2"
+
+    ScoreRequest:
+      type: object
+      required:
+        - hole
+        - strokes
+        - putts
+      properties:
+        hole:
+          type: integer
+          minimum: 1
+          maximum: 18
+        strokes:
+          type: integer
+          minimum: 1
+          maximum: 20
+        putts:
+          type: integer
+          minimum: 0
+          maximum: 10
+
+    Score:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: '^score_[a-zA-Z0-9]{15}$'
+        player_id:
+          type: string
+        game_id:
+          type: string
+        hole:
+          type: integer
+        strokes:
+          type: integer
+        putts:
+          type: integer
+        par:
+          type: integer
+        score_to_par:
+          type: string
+          example: "+1"
+        handicap_stroke:
+          type: boolean
+        effective_score:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        side_bet_updates:
+          $ref: '#/components/schemas/SideBetUpdates'
+
+    SideBetUpdates:
+      type: object
+      properties:
+        putt_putt_poker:
+          type: object
+          properties:
+            cards_awarded:
+              type: integer
+            penalty_applied:
+              type: boolean
+            total_cards:
+              type: integer
+
+    CourseInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Diamond Run"
+        holes:
+          type: array
+          items:
+            $ref: '#/components/schemas/HoleInfo'
+        total_par:
+          type: integer
+          example: 72
+
+    HoleInfo:
+      type: object
+      properties:
+        hole:
+          type: integer
+          minimum: 1
+          maximum: 18
+        par:
+          type: integer
+          minimum: 3
+          maximum: 5
+        handicap_ranking:
+          type: integer
+          minimum: 1
+          maximum: 18
+        yardage:
+          type: integer
+          minimum: 50
+          maximum: 600
+        description:
+          type: string
+
+    Leaderboard:
+      type: object
+      properties:
+        overall:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardEntry'
+        side_bets:
+          type: object
+          properties:
+            best_nine:
+              type: array
+              items:
+                $ref: '#/components/schemas/BestNineResult'
+            putt_putt_poker:
+              type: array
+              items:
+                $ref: '#/components/schemas/PuttPuttPokerResult'
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        position:
+          type: integer
+          minimum: 1
+        player:
+          $ref: '#/components/schemas/PlayerSummary'
+        score:
+          type: string
+          example: "+15"
+        holes_completed:
+          type: integer
+        total_putts:
+          type: integer
+        trend:
+          type: string
+          enum: ["up", "down", "same"]
+
+    BestNineStandings:
+      type: object
+      properties:
+        bet_type:
+          type: string
+          enum: ["best_nine"]
+        status:
+          $ref: '#/components/schemas/GameStatus'
+        handicap_enabled:
+          type: boolean
+        standings:
+          type: array
+          items:
+            $ref: '#/components/schemas/BestNineResult'
+        winner:
+          type: object
+          properties:
+            player_id:
+              type: string
+            score:
+              type: string
+            margin:
+              type: string
+
+    BestNineResult:
+      type: object
+      properties:
+        player:
+          $ref: '#/components/schemas/PlayerSummary'
+        best_nine_score:
+          type: string
+          example: "+2"
+        holes_completed:
+          type: integer
+        best_holes:
+          type: array
+          items:
+            type: integer
+        worst_holes:
+          type: array
+          items:
+            type: integer
+        raw_best_nine:
+          type: string
+        handicap_adjustment:
+          type: string
+        final_score:
+          type: string
+        position:
+          type: integer
+
+    PuttPuttPokerStatus:
+      type: object
+      properties:
+        bet_type:
+          type: string
+          enum: ["putt_putt_poker"]
+        status:
+          $ref: '#/components/schemas/GameStatus'
+        current_hole:
+          type: integer
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/PuttPuttPokerResult'
+        pot_info:
+          type: object
+          properties:
+            base_bet:
+              type: number
+              format: float
+            penalty_additions:
+              type: number
+              format: float
+            total_pot:
+              type: number
+              format: float
+
+    PuttPuttPokerResult:
+      type: object
+      properties:
+        player:
+          $ref: '#/components/schemas/PlayerSummary'
+        total_cards:
+          type: integer
+        starting_cards:
+          type: integer
+        cards_earned:
+          type: integer
+        penalties:
+          type: integer
+        putting_stats:
+          $ref: '#/components/schemas/PuttingStats'
+        position:
+          type: integer
+
+    PuttingStats:
+      type: object
+      properties:
+        one_putts:
+          type: integer
+        hole_in_ones:
+          type: integer
+        three_putts:
+          type: integer
+        average_putts:
+          type: number
+          format: float
+
+    PokerDealResult:
+      type: object
+      properties:
+        deal_timestamp:
+          type: string
+          format: date-time
+        random_seed:
+          type: string
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/PokerHand'
+        winner:
+          type: object
+          properties:
+            player_id:
+              type: string
+            hand_type:
+              type: string
+            winning_cards:
+              type: array
+              items:
+                type: string
+        pot_distribution:
+          type: object
+          properties:
+            total_pot:
+              type: number
+              format: float
+            winner_take:
+              type: number
+              format: float
+
+    PokerHand:
+      type: object
+      properties:
+        player:
+          $ref: '#/components/schemas/PlayerSummary'
+        total_cards_earned:
+          type: integer
+        dealt_cards:
+          type: array
+          items:
+            type: string
+            example: "AS"
+        best_hand:
+          type: object
+          properties:
+            cards:
+              type: array
+              items:
+                type: string
+            hand_type:
+              type: string
+              enum: ["royal_flush", "straight_flush", "four_of_a_kind", "full_house", "flush", "straight", "three_of_a_kind", "two_pair", "pair", "high_card"]
+            hand_rank:
+              type: integer
+              minimum: 1
+              maximum: 10
+            description:
+              type: string
+        position:
+          type: integer
+
+    PlayerSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        handicap:
+          type: number
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: "validation_error"
+            message:
+              type: string
+              example: "Invalid input data"
+            details:
+              type: object
+              additionalProperties: true
+            request_id:
+              type: string
+              example: "req_abc123def456"
+            timestamp:
+              type: string
+              format: date-time
+
+    # Additional schemas for remaining responses...
+    UpdatePlayerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        handicap:
+          type: number
+          minimum: 0
+          maximum: 54
+
+    UpdateScoreRequest:
+      type: object
+      properties:
+        strokes:
+          type: integer
+          minimum: 1
+          maximum: 20
+        putts:
+          type: integer
+          minimum: 0
+          maximum: 10
+
+    PlayersResponse:
+      type: object
+      properties:
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        total_count:
+          type: integer
+
+    PlayerDetail:
+      allOf:
+        - $ref: '#/components/schemas/Player'
+        - type: object
+          properties:
+            hole_scores:
+              type: array
+              items:
+                $ref: '#/components/schemas/Score'
+
+    GameScorecard:
+      type: object
+      properties:
+        game:
+          type: object
+          properties:
+            id:
+              type: string
+            course:
+              type: string
+            current_hole:
+              type: integer
+        course_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/HoleInfo'
+        players:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              position:
+                type: integer
+              scores:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Score'
+              totals:
+                $ref: '#/components/schemas/PlayerStats'
+
+    GameCompletionResult:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/GameStatus'
+        completed_at:
+          type: string
+          format: date-time
+        final_results:
+          $ref: '#/components/schemas/FinalResults'
+
+    FinalResults:
+      type: object
+      properties:
+        overall_winner:
+          type: object
+          properties:
+            player_id:
+              type: string
+            score:
+              type: string
+        best_nine_winner:
+          type: object
+          properties:
+            player_id:
+              type: string
+            score:
+              type: string
+        putt_putt_poker_winner:
+          type: object
+          properties:
+            player_id:
+              type: string
+            hand:
+              type: string
+            cards:
+              type: array
+              items:
+                type: string
+
+    SpectatorView:
+      type: object
+      properties:
+        game:
+          $ref: '#/components/schemas/Game'
+        leaderboard:
+          $ref: '#/components/schemas/Leaderboard'
+        live_updates:
+          type: boolean
+        spectator_count:
+          type: integer
+
+tags:
+  - name: Games
+    description: Game management operations
+  - name: Players
+    description: Player management operations
+  - name: Scores
+    description: Score tracking operations
+  - name: Side Bets
+    description: Side bet calculations and results
+  - name: Spectator
+    description: Read-only spectator access

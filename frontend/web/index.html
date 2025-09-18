@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<meta name="description" content="Golf Gamez - Weekend warrior golf game tracking with live scoring and side bets">
+	<meta name="theme-color" content="#2d5016">
+
+	<!-- Apple Touch Icon -->
+	<link rel="apple-touch-icon" href="/static/assets/icon-192.png">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+	<meta name="apple-mobile-web-app-title" content="Golf Gamez">
+
+	<!-- Preconnect to improve performance -->
+	<link rel="preconnect" href="//fonts.googleapis.com">
+	<link rel="preconnect" href="//fonts.gstatic.com" crossorigin>
+
+	<title>Golf Gamez - Live Golf Score Tracking</title>
+
+	<!-- CSS Framework and Components -->
+	<link rel="stylesheet" href="/static/css/mobile-framework.css">
+	<link rel="stylesheet" href="/static/css/golf-components.css">
+
+	<!-- PWA Manifest -->
+	<link rel="manifest" href="/static/manifest.json">
+
+	<!-- Favicon -->
+	<link rel="icon" type="image/png" sizes="32x32" href="/static/assets/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/static/assets/favicon-16x16.png">
+
+	<style>
+		/* Critical CSS for immediate loading */
+		html, body {
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			overflow-x: hidden;
+		}
+
+		#app {
+			min-height: 100vh;
+		}
+
+		/* Loading screen */
+		.loading-screen {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: var(--gray-50);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			z-index: 9999;
+		}
+
+		.loading-logo {
+			font-size: 2rem;
+			font-weight: 700;
+			color: var(--primary-green);
+			margin-bottom: 2rem;
+		}
+
+		.loading-spinner {
+			width: 40px;
+			height: 40px;
+			border: 4px solid var(--gray-200);
+			border-top: 4px solid var(--primary-green);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+		.loading-text {
+			margin-top: 1rem;
+			color: var(--gray-600);
+			font-size: 0.875rem;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+
+		/* Toast container */
+		.toast-container {
+			position: fixed;
+			top: 1rem;
+			right: 1rem;
+			z-index: 1080;
+			pointer-events: none;
+		}
+
+		.toast {
+			background: white;
+			border-radius: 0.5rem;
+			box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+			margin-bottom: 0.5rem;
+			max-width: 320px;
+			pointer-events: auto;
+			overflow: hidden;
+			border-left: 4px solid;
+			animation: slideInRight 0.3s ease-out;
+		}
+
+		.toast-success { border-left-color: var(--success); }
+		.toast-error { border-left-color: var(--error); }
+		.toast-warning { border-left-color: var(--warning); }
+		.toast-info { border-left-color: var(--info); }
+
+		.toast-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0.75rem 1rem;
+			border-bottom: 1px solid var(--gray-200);
+		}
+
+		.toast-body {
+			padding: 0.75rem 1rem;
+			font-size: 0.875rem;
+			color: var(--gray-600);
+		}
+
+		.toast-close {
+			background: none;
+			border: none;
+			font-size: 1.25rem;
+			color: var(--gray-400);
+			cursor: pointer;
+			padding: 0;
+			margin-left: 1rem;
+		}
+
+		@keyframes slideInRight {
+			from {
+				transform: translateX(100%);
+				opacity: 0;
+			}
+			to {
+				transform: translateX(0);
+				opacity: 1;
+			}
+		}
+
+		/* Modal styles */
+		.modal-backdrop {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.5);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 1050;
+			padding: 1rem;
+		}
+
+		.modal {
+			background: white;
+			border-radius: 1rem;
+			max-width: 500px;
+			width: 100%;
+			max-height: 90vh;
+			overflow-y: auto;
+			box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+			animation: modalSlideIn 0.3s ease-out;
+		}
+
+		.modal-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 1.5rem 1.5rem 1rem;
+			border-bottom: 1px solid var(--gray-200);
+		}
+
+		.modal-header h3 {
+			margin: 0;
+			font-size: 1.25rem;
+			font-weight: 600;
+			color: var(--gray-900);
+		}
+
+		.modal-close {
+			background: none;
+			border: none;
+			font-size: 1.5rem;
+			color: var(--gray-400);
+			cursor: pointer;
+			padding: 0;
+		}
+
+		.modal-body {
+			padding: 1rem 1.5rem 1.5rem;
+		}
+
+		@keyframes modalSlideIn {
+			from {
+				transform: scale(0.9) translateY(-20px);
+				opacity: 0;
+			}
+			to {
+				transform: scale(1) translateY(0);
+				opacity: 1;
+			}
+		}
+
+		/* Connection status styles */
+		.connection-status {
+			font-size: 0.75rem;
+			padding: 0.25rem 0.75rem;
+		}
+
+		.connection-status.connected {
+			background-color: var(--success);
+			color: white;
+		}
+
+		.connection-status.connecting {
+			background-color: var(--warning);
+			color: white;
+		}
+
+		.connection-status.disconnected {
+			background-color: var(--error);
+			color: white;
+		}
+
+		/* Error fallback */
+		.error-boundary {
+			padding: 2rem;
+			text-align: center;
+			background-color: #fef2f2;
+			border: 1px solid var(--error);
+			border-radius: 0.5rem;
+			margin: 1rem;
+		}
+
+		.error-boundary h2 {
+			color: var(--error);
+			margin-bottom: 1rem;
+		}
+
+		.error-boundary button {
+			background-color: var(--error);
+			color: white;
+			border: none;
+			padding: 0.5rem 1rem;
+			border-radius: 0.25rem;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<!-- Loading Screen -->
+	<div id="loading-screen" class="loading-screen">
+		<div class="loading-logo">Golf Gamez</div>
+		<div class="loading-spinner"></div>
+		<div class="loading-text">Loading your golf experience...</div>
+	</div>
+
+	<!-- Main Application Container -->
+	<div id="app" style="display: none;">
+		<!-- Content will be loaded by WebAssembly -->
+	</div>
+
+	<!-- Toast Container -->
+	<div id="toast-container" class="toast-container"></div>
+
+	<!-- Error Boundary -->
+	<div id="error-boundary" class="error-boundary" style="display: none;">
+		<h2>Something went wrong</h2>
+		<p>We're sorry, but the application encountered an error.</p>
+		<button onclick="location.reload()">Reload Page</button>
+	</div>
+
+	<!-- Service Worker Registration -->
+	<script>
+		// Register service worker for PWA capabilities
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', () => {
+				navigator.serviceWorker.register('/sw.js')
+					.then(registration => {
+						console.log('SW registered: ', registration);
+					})
+					.catch(registrationError => {
+						console.log('SW registration failed: ', registrationError);
+					});
+			});
+		}
+
+		// Global error handler
+		window.addEventListener('error', (event) => {
+			console.error('Global error:', event.error);
+			document.getElementById('loading-screen').style.display = 'none';
+			document.getElementById('app').style.display = 'none';
+			document.getElementById('error-boundary').style.display = 'block';
+		});
+
+		// Unhandled promise rejection handler
+		window.addEventListener('unhandledrejection', (event) => {
+			console.error('Unhandled promise rejection:', event.reason);
+		});
+
+		// WebAssembly loading function
+		async function loadWasm() {
+			try {
+				// Load the wasm_exec.js helper
+				if (!WebAssembly.instantiateStreaming) {
+					// Fallback for older browsers
+					WebAssembly.instantiateStreaming = async (resp, importObject) => {
+						const source = await (await resp).arrayBuffer();
+						return await WebAssembly.instantiate(source, importObject);
+					};
+				}
+
+				// Load the Go WebAssembly runtime
+				const go = new Go();
+				const result = await WebAssembly.instantiateStreaming(
+					fetch('/static/js/main.wasm'),
+					go.importObject
+				);
+
+				// Run the WebAssembly module
+				go.run(result.instance);
+
+				// Hide loading screen and show app
+				document.getElementById('loading-screen').style.display = 'none';
+				document.getElementById('app').style.display = 'block';
+
+			} catch (error) {
+				console.error('Failed to load WebAssembly:', error);
+				document.getElementById('loading-screen').style.display = 'none';
+				document.getElementById('error-boundary').style.display = 'block';
+			}
+		}
+
+		// Initialize the application
+		function initApp() {
+			// Set up global functions that might be called before WASM loads
+			window.golfGamez = window.golfGamez || {
+				createGame: () => console.log('WASM not loaded yet'),
+				addPlayer: () => console.log('WASM not loaded yet'),
+				startGame: () => console.log('WASM not loaded yet'),
+				recordScore: () => console.log('WASM not loaded yet'),
+				navigateTo: (path) => {
+					history.pushState(null, '', path);
+					// Will be overridden by WASM when loaded
+				}
+			};
+
+			// Load WebAssembly
+			loadWasm();
+		}
+
+		// Start the app when DOM is ready
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initApp);
+		} else {
+			initApp();
+		}
+
+		// Handle back/forward navigation
+		window.addEventListener('popstate', () => {
+			if (window.golfGamez && window.golfGamez.handlePopstate) {
+				window.golfGamez.handlePopstate();
+			}
+		});
+
+		// Prevent zoom on double tap (iOS Safari)
+		let lastTouchEnd = 0;
+		document.addEventListener('touchend', (event) => {
+			const now = new Date().getTime();
+			if (now - lastTouchEnd <= 300) {
+				event.preventDefault();
+			}
+			lastTouchEnd = now;
+		}, false);
+
+		// Prevent pull-to-refresh (mobile browsers)
+		document.body.addEventListener('touchstart', (e) => {
+			if (e.touches.length === 1 && window.pageYOffset === 0) {
+				// Prevent pull-to-refresh at top of page
+				e.preventDefault();
+			}
+		}, { passive: false });
+
+		document.body.addEventListener('touchmove', (e) => {
+			if (e.touches.length === 1 && window.pageYOffset === 0) {
+				// Prevent pull-to-refresh at top of page
+				e.preventDefault();
+			}
+		}, { passive: false });
+	</script>
+
+	<!-- WebAssembly Support Script -->
+	<script src="/static/js/wasm_exec.js"></script>
+</body>
+</html>

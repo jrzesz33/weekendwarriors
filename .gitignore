@@ -1,0 +1,4 @@
+/bin
+/go.sum
+data/golf_gamez.db
+frontend/web/static/js/main.wasm
