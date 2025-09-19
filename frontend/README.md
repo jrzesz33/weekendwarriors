@@ -1,261 +1,323 @@
-# Golf Gamez Frontend
+# Golf Gamez Frontend PWA
 
-A mobile-first Progressive Web Application (PWA) built with Go/WebAssembly for tracking golf scores and side bets in real-time.
+A Progressive Web Application built with Go and WebAssembly for tracking golf scores and side bets. This mobile-first application provides real-time score tracking, anonymous game creation, and offline capabilities.
 
 ## Features
 
 ### Core Functionality
-- **Anonymous Game Creation**: Create golf games without registration
-- **Real-time Score Tracking**: Live score updates via WebSocket
-- **Mobile-First Design**: Optimized for mobile devices with touch-friendly interfaces
-- **Side Bet Support**: Best Nine and Putt Putt Poker tracking
-- **Spectator Mode**: Share-able links for read-only game viewing
-- **Offline Support**: Works offline with data sync when reconnected
+- **Anonymous Game Creation**: No registration required, instant game setup
+- **Real-time Updates**: WebSocket-powered live score and leaderboard updates
+- **Mobile-First Design**: Touch-optimized UI for outdoor use
+- **Offline Support**: PWA capabilities with service worker caching
+- **Responsive Layout**: Works seamlessly on phones, tablets, and desktops
 
-### Technical Features
-- **Go/WebAssembly**: High-performance client-side execution
-- **Progressive Web App**: Install-able on mobile devices
-- **Resilient Connectivity**: Automatic reconnection with exponential backoff
-- **Touch Optimized**: 44px+ touch targets, haptic feedback
-- **Responsive Design**: Works on phones, tablets, and desktop
+### Golf Features
+- **Diamond Run Golf Course**: Pre-configured 18-hole course (Par 71)
+- **Scorecard Interface**: Intuitive hole-by-hole score entry
+- **Handicap System**: Support for player handicaps with guidance
+- **Live Leaderboard**: Real-time standings and player statistics
 
-## Architecture
+### Side Bets
+- **Best Nine**: Calculates best 9 holes vs par with handicap adjustments
+- **Putt Putt Poker**: Card-based betting game based on putting performance
 
-### Frontend Stack
-- **Go 1.21+**: Compiled to WebAssembly for client-side execution
-- **Vanilla CSS**: Custom mobile-first framework with golf-specific components
-- **Service Worker**: PWA capabilities and offline support
-- **WebSocket**: Real-time communication with resilient retry logic
+## Technology Stack
 
-### Key Components
-- **API Client**: HTTP client optimized for WebAssembly environment
-- **WebSocket Manager**: Connection handling with automatic reconnection
-- **UI Manager**: DOM manipulation and component rendering
-- **Storage Manager**: Local storage for offline capabilities
-- **Score Entry**: Touch-optimized input with validation
+- **Framework**: [go-app](https://go-app.dev/) for WebAssembly compilation
+- **Language**: Go 1.21+
+- **Architecture**: Component-based with clean separation of concerns
+- **Styling**: Mobile-first CSS with touch optimization
+- **PWA Features**: Service Worker, Web App Manifest, offline caching
+- **Real-time**: WebSocket integration for live updates
+
+## Quick Start
+
+### Prerequisites
+- Go 1.21 or higher
+- Make (for build scripts)
+- Backend API running on `http://localhost:8080`
+
+### Development Setup
+
+1. **Clone and navigate to frontend directory**:
+```bash
+cd /workspaces/golf_gamez/frontend
+```
+
+2. **Install dependencies**:
+```bash
+make deps
+```
+
+3. **Start development server**:
+```bash
+make dev
+```
+
+4. **Open in browser**:
+   - Web: `http://localhost:8000`
+   - Mobile: `http://[your-ip]:8000`
+
+### Production Build
+
+```bash
+# Build optimized version
+make build
+
+# Serve production build
+make serve-production
+```
 
 ## Project Structure
 
 ```
 frontend/
-├── main.go                 # Application entry point
-├── build.sh               # Build script for WebAssembly
-├── go.mod                 # Go module definition
-├── internal/
-│   ├── app/               # Application core
-│   ├── api/               # API client layer
-│   ├── websocket/         # WebSocket management
-│   ├── ui/                # User interface components
-│   ├── storage/           # Local storage handling
-│   └── models/            # Data models
-└── web/
-    ├── index.html         # Main HTML file
-    ├── sw.js              # Service worker
-    └── static/
-        ├── css/           # Stylesheets
-        ├── js/            # JavaScript files
-        └── assets/        # Images and icons
+├── cmd/                    # Application entry points
+│   ├── main.go            # Main WebAssembly application
+│   ├── game.go            # Game management component
+│   ├── scorecard.go       # Scorecard interface component
+│   ├── leaderboard.go     # Leaderboard display component
+│   └── server.go          # Development server
+├── internal/              # Internal packages
+│   ├── components/        # Reusable UI components
+│   ├── services/          # Business logic services
+│   │   ├── api.go         # Backend API client
+│   │   └── websocket.go   # WebSocket service
+│   ├── models/            # Data models
+│   └── utils/             # Utility functions
+├── web/                   # Static web assets
+│   ├── css/
+│   │   └── app.css        # Main stylesheet
+│   ├── js/
+│   │   └── app.js         # PWA enhancements
+│   ├── static/            # Icons and images
+│   ├── manifest.json      # PWA manifest
+│   └── sw.js              # Service worker
+├── build/                 # Build output (generated)
+├── Makefile              # Build automation
+├── Dockerfile            # Container configuration
+├── docker-compose.yml    # Development environment
+└── README.md             # This file
 ```
 
-## Building and Running
+## Available Commands
 
-### Prerequisites
-- Go 1.21 or later
-- Modern web browser with WebAssembly support
-
-### Build for Development
+### Development
 ```bash
-# Make build script executable
-chmod +x build.sh
-
-# Build WebAssembly binary
-./build.sh
+make dev          # Build and serve with auto-reload
+make build-dev    # Build development version
+make watch        # Watch for changes (requires entr)
+make serve        # Serve built application
 ```
 
-### Build for Production
+### Production
 ```bash
-# Build with optimizations
-./build.sh production
+make build        # Build production version
+make optimize     # Build with optimizations
+make prod         # Production build with all optimizations
 ```
 
-### Serve Locally
+### Quality Assurance
 ```bash
-# Simple HTTP server (Python)
-cd web && python3 -m http.server 8000
-
-# Or using Go
-cd web && go run -m http.server
-
-# Access at http://localhost:8000
+make test         # Run tests
+make test-coverage # Run tests with coverage
+make lint         # Run linter
+make fmt          # Format code
+make check        # Run all quality checks
 ```
 
-## API Integration
-
-The frontend is designed to work with the Golf Gamez API. Configure the API endpoint in `internal/api/client.go`:
-
-```go
-// Development
-apiClient := api.NewClient("http://localhost:8080/v1")
-
-// Production
-apiClient := api.NewClient("https://api.golfgamez.com/v1")
+### Utilities
+```bash
+make clean        # Clean build artifacts
+make deps         # Install dependencies
+make info         # Show build information
+make size         # Show build size information
 ```
+
+### Docker
+```bash
+make docker-build # Build Docker image
+make docker-run   # Run in container
+docker-compose up frontend-dev  # Development with Docker
+```
+
+## PWA Features
+
+### Service Worker
+- **Caching Strategy**: Cache-first for static assets, network-first for API
+- **Offline Support**: Graceful degradation when network unavailable
+- **Background Sync**: Queues score updates when offline
+- **Update Management**: Automatic updates with user notification
+
+### App Manifest
+- **Installation**: Can be installed as native app on mobile devices
+- **Icons**: Complete icon set for all device sizes
+- **Theme**: Golf-themed green color scheme
+- **Shortcuts**: Quick access to common actions
+
+### Performance
+- **WebAssembly**: Fast execution with small bundle size
+- **Lazy Loading**: Components loaded on demand
+- **Caching**: Aggressive caching of static assets
+- **Compression**: Gzip compression for all text assets
 
 ## Mobile Optimization
 
-### Touch Targets
-- Minimum 44px touch targets for accessibility
-- Enhanced touch feedback with haptic vibration
-- Optimized tap zones for score entry
+### Touch Interface
+- **Touch Targets**: Minimum 44px touch targets
+- **Gesture Support**: Swipe navigation where appropriate
+- **Feedback**: Visual feedback for all interactions
+- **Accessibility**: Screen reader and keyboard navigation support
 
-### Performance
-- WebAssembly for native-speed calculations
-- Minimal JavaScript footprint
-- Efficient DOM updates
-- Service worker caching
+### Layout
+- **Responsive Design**: Mobile-first approach with progressive enhancement
+- **Viewport Handling**: Proper viewport meta tags and CSS units
+- **Orientation**: Works in both portrait and landscape modes
+- **Safe Areas**: Respects device safe areas and notches
 
-### Responsive Design
-- Mobile-first CSS framework
-- Breakpoints: 480px, 768px, 1024px
-- Touch-optimized score entry interface
-- Collapsible navigation for small screens
+## API Integration
 
-## Offline Support
+### Authentication
+- **Token-based**: Uses share tokens extracted from game creation
+- **Anonymous**: No user registration required
+- **Security**: Secure token handling and storage
 
-The application provides robust offline capabilities:
+### Real-time Features
+- **WebSocket**: Live updates for scores and leaderboard
+- **Reconnection**: Automatic reconnection with exponential backoff
+- **Offline Queuing**: Queue updates when offline for later sync
 
-### Cached Resources
-- Application shell (HTML, CSS, JS)
-- WebAssembly binary
-- Static assets and icons
-
-### Offline Functionality
-- View cached game data
-- Enter scores offline (synced when reconnected)
-- Access recent games
-- Basic calculations without network
-
-### Data Sync
-- Automatic sync when connection restored
-- Conflict resolution for score updates
-- Background sync for pending operations
-
-## Real-time Features
-
-### WebSocket Connection
-- Automatic connection on game start
-- Exponential backoff retry strategy
-- Heartbeat mechanism for connection health
-- Queue messages during disconnection
-
-### Live Updates
-- Real-time score updates
-- Leaderboard position changes
-- Side bet calculations
-- Connection status indicator
-
-## Security Considerations
-
-### Client-Side Security
-- No sensitive data stored locally
-- Share tokens for game access
-- Read-only spectator tokens
-- HTTPS enforcement in production
-
-### Data Validation
-- Client-side input validation
-- Server-side validation backup
-- Score range checking
-- Player limit enforcement
-
-## Browser Support
-
-### Minimum Requirements
-- WebAssembly support
-- ES6+ JavaScript features
-- CSS Grid and Flexbox
-- Service Worker API
-- Local Storage API
-
-### Tested Browsers
-- Chrome/Chromium 80+
-- Safari 14+
-- Firefox 78+
-- Edge 80+
-
-### Mobile Browsers
-- iOS Safari 14+
-- Chrome Mobile 80+
-- Samsung Internet 12+
-
-## Performance Optimizations
-
-### WebAssembly
-- Optimized Go compilation flags
-- Minimal runtime overhead
-- Efficient memory management
-- Fast startup time
-
-### Network
-- Service worker caching
-- Resource preloading
-- WebSocket connection pooling
-- Compression support
-
-### UI/UX
-- 60fps animations
-- Smooth scrolling
-- Instant feedback
-- Progressive loading
+### Error Handling
+- **Graceful Degradation**: App continues to work with limited functionality
+- **User Feedback**: Clear error messages and recovery suggestions
+- **Retry Logic**: Automatic retries for transient failures
 
 ## Development Guidelines
 
-### Code Organization
-- Feature-based module structure
-- Clear separation of concerns
-- Consistent error handling
-- Comprehensive documentation
+### Component Architecture
+- **Single Responsibility**: Each component has a clear, focused purpose
+- **State Management**: Minimal, local state with clear data flow
+- **Event Handling**: Consistent event handling patterns
+- **Reusability**: Components designed for reuse across the application
+
+### Code Style
+- **Go Standards**: Follows standard Go conventions and best practices
+- **Documentation**: Comprehensive comments for public APIs
+- **Error Handling**: Explicit error handling throughout
+- **Testing**: Unit tests for business logic
 
 ### Performance
-- Minimize DOM manipulation
-- Use efficient data structures
-- Optimize critical rendering path
-- Profile WebAssembly performance
+- **Bundle Size**: Optimized WebAssembly output
+- **Memory Usage**: Efficient memory management
+- **Network**: Minimized API calls and optimized caching
+- **Rendering**: Efficient DOM updates
 
-### Accessibility
-- WCAG 2.1 AA compliance
-- Screen reader support
-- Keyboard navigation
-- High contrast support
+## Deployment
+
+### Static Hosting
+The application builds to static files that can be hosted on any web server:
+
+```bash
+# Build for production
+make build
+
+# Deploy files from build/ directory
+```
+
+### Docker Deployment
+```bash
+# Build production container
+docker build -t golf-gamez-frontend .
+
+# Run container
+docker run -p 80:80 golf-gamez-frontend
+```
+
+### Platform-Specific Deployment
+```bash
+# Netlify
+make deploy-netlify
+
+# Vercel
+make deploy-vercel
+
+# Create deployment package
+make deploy-prepare
+```
+
+## Browser Support
+
+- **Modern Browsers**: Chrome 57+, Firefox 52+, Safari 11+, Edge 16+
+- **WebAssembly**: Required for application execution
+- **Service Workers**: Required for offline functionality
+- **ES6**: Modern JavaScript features used throughout
+
+## Performance Metrics
+
+- **First Contentful Paint**: < 1.5s on 3G
+- **Time to Interactive**: < 3s on 3G
+- **Bundle Size**: < 2MB total (including WebAssembly)
+- **Lighthouse Score**: 90+ across all categories
 
 ## Contributing
 
-### Setup Development Environment
-1. Install Go 1.21+
-2. Clone repository
-3. Run build script
-4. Start local server
-5. Open browser to localhost
+1. **Development Setup**: Follow the Quick Start guide
+2. **Code Standards**: Run `make check` before committing
+3. **Testing**: Add tests for new functionality
+4. **Documentation**: Update README for significant changes
 
-### Code Style
-- Go fmt for Go code
-- Consistent CSS methodology
-- JSDoc for JavaScript
-- Semantic HTML structure
+## Troubleshooting
 
-### Testing
-- Unit tests for core logic
-- Integration tests for API client
-- Manual testing on target devices
-- Performance benchmarking
+### Common Issues
+
+**Build Fails**:
+```bash
+# Ensure Go version is 1.21+
+go version
+
+# Clean and rebuild
+make clean && make build
+```
+
+**Server Won't Start**:
+```bash
+# Check if port is in use
+lsof -i :8000
+
+# Try different port
+make serve -port=8001
+```
+
+**WebAssembly Loading Issues**:
+```bash
+# Ensure wasm_exec.js is present
+make ensure-wasm-exec
+
+# Check browser console for MIME type errors
+```
+
+**API Connection Issues**:
+- Ensure backend is running on `http://localhost:8080`
+- Check CORS settings in development
+- Verify network connectivity
+
+### Debug Mode
+Enable debug logging by setting environment variables:
+```bash
+GOLFGAMEZ_DEBUG=true make dev
+```
 
 ## License
 
-MIT License - See LICENSE file for details.
+This project is part of the Golf Gamez application suite. See the main project README for license information.
 
 ## Support
 
 For issues and questions:
-- GitHub Issues for bug reports
-- API documentation in `/docs`
-- Development guide in this README
+- Check the troubleshooting section above
+- Review the main project documentation
+- Open an issue on the project repository
+
+---
+
+Built with ❤️ for weekend golfers who love their side bets!

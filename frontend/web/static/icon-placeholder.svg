@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Golf-themed icon placeholder -->
+  <defs>
+    <linearGradient id="grass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4caf50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" ry="64" fill="url(#grass)"/>
+
+  <!-- Golf ball -->
+  <circle cx="256" cy="200" r="40" fill="white" stroke="#e0e0e0" stroke-width="2"/>
+
+  <!-- Golf ball dimples -->
+  <circle cx="246" cy="190" r="3" fill="#f5f5f5"/>
+  <circle cx="266" cy="190" r="3" fill="#f5f5f5"/>
+  <circle cx="256" cy="210" r="3" fill="#f5f5f5"/>
+  <circle cx="240" cy="205" r="2" fill="#f5f5f5"/>
+  <circle cx="272" cy="205" r="2" fill="#f5f5f5"/>
+
+  <!-- Golf flag -->
+  <rect x="320" y="150" width="4" height="120" fill="#8d6e63"/>
+  <polygon points="324,150 324,180 360,165" fill="#f44336"/>
+
+  <!-- Golf hole -->
+  <ellipse cx="340" cy="260" rx="12" ry="4" fill="#1b5e20"/>
+
+  <!-- App title -->
+  <text x="256" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white">Golf</text>
+  <text x="256" y="390" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white">Gamez</text>
+
+  <!-- Subtle pattern -->
+  <circle cx="100" cy="100" r="20" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="400" cy="400" r="15" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="80" cy="400" r="25" fill="rgba(255,255,255,0.1)"/>
+</svg>

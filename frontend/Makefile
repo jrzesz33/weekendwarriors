@@ -1,184 +1,229 @@
 # Golf Gamez Frontend Makefile
 
-.PHONY: build build-prod clean serve test deps lint help
-
 # Variables
+BINARY_NAME=golf-gamez-frontend
+BUILD_DIR=build
+WEB_DIR=web
+STATIC_DIR=$(WEB_DIR)/static
+
+# Go build flags
 GOOS=js
 GOARCH=wasm
-OUTPUT_DIR=web/static/js
-WASM_FILE=$(OUTPUT_DIR)/main.wasm
-WASM_EXEC=$(OUTPUT_DIR)/wasm_exec.js
-GO_FILES=$(shell find . -name "*.go" -not -path "./vendor/*")
+GO_BUILD_FLAGS=-ldflags="-w -s"
+
+# Development server settings
+DEV_PORT=8000
+API_PORT=8080
+
+.PHONY: help build build-dev run dev clean test lint fmt tidy deps check assets serve-assets
 
 # Default target
 help: ## Show this help message
 	@echo "Golf Gamez Frontend Build System"
 	@echo "================================"
 	@echo ""
-	@echo "Available targets:"
+	@echo "Available commands:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# Dependencies
-deps: ## Install Go dependencies
-	@echo "Installing Go dependencies..."
-	@go mod download
-	@go mod tidy
+# Build targets
+build: clean deps build-wasm copy-assets ## Build production version
+	@echo "✅ Production build complete"
 
-# Development build
-build: deps ## Build WebAssembly for development
-	@echo "Building WebAssembly for development..."
-	@mkdir -p $(OUTPUT_DIR)
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(WASM_FILE) main.go
-	@cp "$$(go env GOROOT)/misc/wasm/wasm_exec.js" $(WASM_EXEC)
-	@echo "Build complete: $(WASM_FILE)"
-	@echo "Support file: $(WASM_EXEC)"
+build-dev: clean deps build-wasm-dev copy-assets ## Build development version
+	@echo "✅ Development build complete"
 
-# Production build with optimizations
-build-prod: deps ## Build WebAssembly for production with optimizations
-	@echo "Building WebAssembly for production..."
-	@mkdir -p $(OUTPUT_DIR)
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build \
-		-ldflags="-s -w" \
-		-gcflags="-l=4" \
-		-o $(WASM_FILE) main.go
-	@cp "$$(go env GOROOT)/misc/wasm/wasm_exec.js" $(WASM_EXEC)
-	@echo "Production build complete: $(WASM_FILE)"
+build-wasm: ## Build WebAssembly binary (production)
+	@echo "🔨 Building WebAssembly binary (production)..."
+	@mkdir -p $(BUILD_DIR)
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/app.wasm ./cmd
 
-	# Compress if tools available
-	@if command -v brotli >/dev/null 2>&1; then \
-		echo "Compressing with Brotli..."; \
-		brotli -f $(WASM_FILE); \
-		echo "Compressed: $(WASM_FILE).br"; \
+build-wasm-dev: ## Build WebAssembly binary (development)
+	@echo "🔨 Building WebAssembly binary (development)..."
+	@mkdir -p $(BUILD_DIR)
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BUILD_DIR)/app.wasm ./cmd
+
+copy-assets: ensure-wasm-exec ## Copy static assets to build directory
+	@echo "📦 Copying static assets..."
+	@mkdir -p $(BUILD_DIR)
+	@cp -r $(WEB_DIR)/* $(BUILD_DIR)/
+	@cp wasm_exec.js $(BUILD_DIR)/
+	@echo "✅ Assets copied"
+
+ensure-wasm-exec: ## Ensure wasm_exec.js is available
+	@if [ ! -f wasm_exec.js ]; then \
+		echo "📥 Downloading wasm_exec.js..."; \
+		go env GOROOT > /tmp/goroot && \
+		cp $$(cat /tmp/goroot)/lib/wasm/wasm_exec.js .; \
 	fi
 
-	@if command -v gzip >/dev/null 2>&1; then \
-		echo "Compressing with Gzip..."; \
-		gzip -f -k $(WASM_FILE); \
-		echo "Compressed: $(WASM_FILE).gz"; \
+generate-icons: ## Generate PWA icons from source
+	@echo "🎨 Generating PWA icons..."
+	@mkdir -p $(STATIC_DIR)
+	@# Note: You would typically use ImageMagick or similar here
+	@echo "⚠️  Icon generation requires manual setup with your preferred tool"
+	@echo "   Required sizes: 72, 96, 128, 144, 152, 180, 192, 384, 512"
+
+# Development targets
+dev: build-dev serve ## Build and serve development version
+
+run: build serve ## Build and serve production version
+
+serve: ## Serve the built application
+	@echo "🚀 Starting development server on http://localhost:$(DEV_PORT)"
+	@echo "📡 Make sure the API server is running on http://localhost:$(API_PORT)"
+	@go run ./cmd/server/main.go -port=$(DEV_PORT) -dir=$(BUILD_DIR)
+
+serve-production: ## Serve production build
+	@echo "🚀 Starting production server on http://localhost:$(DEV_PORT)"
+	@cd $(BUILD_DIR) && python3 -m http.server $(DEV_PORT) 2>/dev/null || \
+	cd $(BUILD_DIR) && python -m SimpleHTTPServer $(DEV_PORT) 2>/dev/null || \
+	cd $(BUILD_DIR) && php -S localhost:$(DEV_PORT) 2>/dev/null || \
+	echo "❌ No web server available. Install Python or PHP to serve files."
+
+watch: ## Watch for changes and rebuild (requires entr or similar)
+	@echo "👀 Watching for changes..."
+	@if command -v entr >/dev/null 2>&1; then \
+		find . -name "*.go" -not -path "./build/*" | entr -r make build-dev; \
+	else \
+		echo "❌ 'entr' not found. Install it with your package manager for auto-rebuild."; \
+		echo "   Falling back to manual build mode."; \
+		make build-dev; \
 	fi
 
-# Clean build artifacts
-clean: ## Clean build artifacts
-	@echo "Cleaning build artifacts..."
-	@rm -f $(WASM_FILE)
-	@rm -f $(WASM_FILE).br
-	@rm -f $(WASM_FILE).gz
-	@rm -f $(WASM_EXEC)
-	@echo "Clean complete"
-
-# Development server
-serve: build ## Build and serve locally for development
-	@echo "Starting development server..."
-	@echo "Access at: http://localhost:8000"
-	@cd web && python3 -m http.server 8000
-
-# Production server
-serve-prod: build-prod ## Build for production and serve locally
-	@echo "Starting production server..."
-	@echo "Access at: http://localhost:8080"
-	@cd web && python3 -m http.server 8080
-
-# Run tests
-test: ## Run Go tests
-	@echo "Running tests..."
+# Quality and maintenance targets
+test: ## Run tests
+	@echo "🧪 Running tests..."
 	@go test -v ./...
 
-# Linting
-lint: ## Run linting tools
-	@echo "Running Go linting..."
+test-coverage: ## Run tests with coverage
+	@echo "🧪 Running tests with coverage..."
+	@go test -v -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out -o coverage.html
+	@echo "📊 Coverage report generated: coverage.html"
+
+lint: ## Run linter
+	@echo "🔍 Running linter..."
 	@if command -v golangci-lint >/dev/null 2>&1; then \
-		golangci-lint run; \
+		golangci-lint run ./...; \
 	else \
-		echo "golangci-lint not installed, using go vet"; \
+		echo "⚠️  golangci-lint not found. Install it for better linting."; \
 		go vet ./...; \
 	fi
 
-# Format code
 fmt: ## Format Go code
-	@echo "Formatting Go code..."
+	@echo "🎨 Formatting Go code..."
 	@go fmt ./...
 
-# Check for updates
-check-updates: ## Check for dependency updates
-	@echo "Checking for dependency updates..."
-	@go list -u -m all
+tidy: ## Tidy Go modules
+	@echo "🧹 Tidying Go modules..."
+	@go mod tidy
 
-# Watch and rebuild (requires inotify-tools on Linux)
-watch: ## Watch for changes and rebuild automatically
-	@echo "Watching for changes..."
-	@while true; do \
-		inotifywait -r -e modify,create,delete --include=".*\.go$$" .; \
-		echo "Changes detected, rebuilding..."; \
-		make build; \
-		echo "Rebuild complete"; \
-	done
+deps: tidy ## Install dependencies
+	@echo "📦 Installing dependencies..."
+	@go mod download
 
-# Bundle size analysis
-analyze: build-prod ## Analyze bundle size
-	@echo "WebAssembly bundle size analysis:"
-	@echo "================================="
-	@if [ -f $(WASM_FILE) ]; then \
-		echo "Uncompressed: $$(du -h $(WASM_FILE) | cut -f1)"; \
-	fi
-	@if [ -f $(WASM_FILE).br ]; then \
-		echo "Brotli:       $$(du -h $(WASM_FILE).br | cut -f1)"; \
-	fi
-	@if [ -f $(WASM_FILE).gz ]; then \
-		echo "Gzip:         $$(du -h $(WASM_FILE).gz | cut -f1)"; \
-	fi
+# Utility targets
+clean: ## Clean build artifacts
+	@echo "🧹 Cleaning build artifacts..."
+	@rm -f $(BUILD_DIR)/app.wasm
+	@rm -f $(BUILD_DIR)/wasm_exec.js
+	@rm -f coverage.out coverage.html
+	@rm -f wasm_exec.js
 
-# Security check
-security: ## Run security checks
-	@echo "Running security checks..."
-	@if command -v gosec >/dev/null 2>&1; then \
-		gosec ./...; \
-	else \
-		echo "gosec not installed, skipping security scan"; \
-	fi
+clean-all: clean ## Clean everything including dependencies
+	@echo "🧹 Cleaning everything..."
+	@go clean -modcache
 
-# Install development tools
-install-tools: ## Install development tools
-	@echo "Installing development tools..."
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+check: fmt lint test ## Run all quality checks
 
-# Docker build (if Dockerfile exists)
+# Docker targets
 docker-build: ## Build Docker image
-	@if [ -f Dockerfile ]; then \
-		echo "Building Docker image..."; \
-		docker build -t golf-gamez-frontend .; \
+	@echo "🐳 Building Docker image..."
+	@docker build -t golf-gamez-frontend .
+
+docker-run: docker-build ## Run Docker container
+	@echo "🐳 Running Docker container..."
+	@docker run -p $(DEV_PORT):80 golf-gamez-frontend
+
+# Deployment targets
+deploy-prepare: build ## Prepare for deployment
+	@echo "🚀 Preparing deployment package..."
+	@tar -czf golf-gamez-frontend.tar.gz -C $(BUILD_DIR) .
+	@echo "📦 Deployment package created: golf-gamez-frontend.tar.gz"
+
+deploy-netlify: build ## Deploy to Netlify (requires netlify-cli)
+	@echo "🌐 Deploying to Netlify..."
+	@if command -v netlify >/dev/null 2>&1; then \
+		netlify deploy --prod --dir=$(BUILD_DIR); \
 	else \
-		echo "Dockerfile not found"; \
+		echo "❌ Netlify CLI not found. Install it with: npm install -g netlify-cli"; \
 	fi
 
-# Show file sizes
-sizes: ## Show file sizes
-	@echo "File sizes:"
-	@echo "==========="
-	@find web/static -type f \( -name "*.css" -o -name "*.js" -o -name "*.wasm" \) -exec du -h {} \; | sort -h
-
-# Validate HTML/CSS
-validate: ## Validate HTML and CSS
-	@echo "Validating HTML and CSS..."
-	@if command -v html5validator >/dev/null 2>&1; then \
-		html5validator web/index.html; \
+deploy-vercel: build ## Deploy to Vercel (requires vercel-cli)
+	@echo "🌐 Deploying to Vercel..."
+	@if command -v vercel >/dev/null 2>&1; then \
+		vercel --prod $(BUILD_DIR); \
 	else \
-		echo "html5validator not installed"; \
+		echo "❌ Vercel CLI not found. Install it with: npm install -g vercel"; \
 	fi
 
-# Create production package
-package: build-prod ## Create production package
-	@echo "Creating production package..."
-	@rm -rf dist
-	@mkdir -p dist
-	@cp -r web/* dist/
-	@echo "Production package created in dist/"
+# Information targets
+info: ## Show build information
+	@echo "Golf Gamez Frontend Build Information"
+	@echo "===================================="
+	@echo "Go version:     $$(go version)"
+	@echo "GOOS:           $(GOOS)"
+	@echo "GOARCH:         $(GOARCH)"
+	@echo "Build dir:      $(BUILD_DIR)"
+	@echo "Web dir:        $(WEB_DIR)"
+	@echo "Dev port:       $(DEV_PORT)"
+	@echo "API port:       $(API_PORT)"
+	@echo ""
+	@echo "Dependencies:"
+	@go list -m all
 
-# Quick development setup
-dev-setup: deps install-tools build ## Quick development environment setup
-	@echo "Development environment ready!"
-	@echo "Run 'make serve' to start development server"
+size: build ## Show build size information
+	@echo "📏 Build size information:"
+	@echo "========================="
+	@du -h $(BUILD_DIR)/app.wasm
+	@echo ""
+	@echo "Detailed breakdown:"
+	@ls -lh $(BUILD_DIR)/
 
-# CI/CD build
-ci-build: deps test lint build-prod analyze ## CI/CD build pipeline
-	@echo "CI/CD build completed successfully"
+# Development helpers
+install-tools: ## Install development tools
+	@echo "🔧 Installing development tools..."
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@echo "✅ Development tools installed"
+
+install-entr: ## Install entr for file watching (macOS)
+	@if command -v brew >/dev/null 2>&1; then \
+		brew install entr; \
+	else \
+		echo "❌ Homebrew not found. Install entr manually for auto-rebuild."; \
+	fi
+
+# Performance and optimization
+optimize: ## Optimize build for production
+	@echo "⚡ Optimizing build..."
+	@make build
+	@if command -v wasm-opt >/dev/null 2>&1; then \
+		echo "🔧 Running wasm-opt..."; \
+		wasm-opt -Oz $(BUILD_DIR)/app.wasm -o $(BUILD_DIR)/app.wasm; \
+	else \
+		echo "⚠️  wasm-opt not found. Install binaryen for better optimization."; \
+	fi
+	@echo "✅ Optimization complete"
+
+analyze: build ## Analyze WebAssembly binary
+	@echo "🔍 Analyzing WebAssembly binary..."
+	@if command -v wasm-objdump >/dev/null 2>&1; then \
+		wasm-objdump -h $(BUILD_DIR)/app.wasm; \
+	else \
+		echo "⚠️  wasm-objdump not found. Install wabt for analysis tools."; \
+	fi
+
+# Quick commands
+quick: build-dev ## Quick development build (alias for build-dev)
+
+prod: optimize ## Production build with optimizations

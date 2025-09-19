@@ -1,0 +1,924 @@
+/* Golf Gamez PWA - Mobile-First Responsive CSS */
+
+/* CSS Variables for Consistent Design */
+:root {
+  --primary-color: #2e7d32;
+  --primary-light: #4caf50;
+  --primary-dark: #1b5e20;
+  --secondary-color: #ff6f00;
+  --secondary-light: #ff9800;
+  --secondary-dark: #e65100;
+
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --info-color: #2196f3;
+
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --text-light: #ffffff;
+
+  --background-primary: #ffffff;
+  --background-secondary: #f5f5f5;
+  --background-accent: #e8f5e8;
+
+  --border-color: #e0e0e0;
+  --border-radius: 8px;
+  --shadow: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-hover: 0 4px 8px rgba(0,0,0,0.15);
+
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-size-small: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-large: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-xxl: 1.5rem;
+
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
+
+  --header-height: 60px;
+  --touch-target: 44px;
+}
+
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+}
+
+/* Touch-optimized base elements */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  min-height: var(--touch-target);
+}
+
+/* Layout Components */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-title {
+  font-size: var(--font-size-xxl);
+  font-weight: 700;
+  margin-bottom: var(--spacing-xs);
+}
+
+.app-subtitle {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+.app-main {
+  flex: 1;
+  padding: var(--spacing-md);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.app-footer {
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+  text-align: center;
+  padding: var(--spacing-lg);
+  margin-top: auto;
+}
+
+/* Game Header Styles */
+.game-header, .scorecard-header, .leaderboard-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow);
+}
+
+.game-info {
+  margin-bottom: var(--spacing-md);
+}
+
+.game-info h2 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-xs);
+}
+
+.share-info {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  margin-top: var(--spacing-md);
+}
+
+.share-info input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  margin: var(--spacing-sm) 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+/* Button Styles */
+.primary-button {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  border: none;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.primary-button:hover {
+  background-color: var(--primary-dark);
+  box-shadow: var(--shadow-hover);
+}
+
+.primary-button:active {
+  transform: translateY(1px);
+}
+
+.primary-button.large {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  font-size: var(--font-size-large);
+  min-height: 56px;
+}
+
+.secondary-button {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.secondary-button:hover {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+}
+
+.enter-score-btn {
+  background-color: var(--secondary-color);
+  color: var(--text-light);
+  border: none;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  min-height: 36px;
+  width: 100%;
+}
+
+.enter-score-btn:hover {
+  background-color: var(--secondary-dark);
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  transition: border-color 0.2s ease;
+  min-height: var(--touch-target);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.form-help {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+  margin-top: var(--spacing-xs);
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: normal;
+  margin-bottom: 0;
+  cursor: pointer;
+  min-height: var(--touch-target);
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  min-height: auto;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+.form-actions button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Welcome Section */
+.welcome-section {
+  text-align: center;
+  padding: var(--spacing-xl) 0;
+}
+
+.welcome-section h2 {
+  font-size: var(--font-size-xxl);
+  margin-bottom: var(--spacing-md);
+  color: var(--primary-color);
+}
+
+.description {
+  font-size: var(--font-size-large);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.6;
+}
+
+.features {
+  display: grid;
+  gap: var(--spacing-lg);
+  margin: var(--spacing-xl) 0;
+}
+
+.feature {
+  background-color: var(--background-accent);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.feature h3 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+/* Game Creation Forms */
+.create-game-form,
+.join-game-form {
+  background-color: var(--background-secondary);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-xl);
+}
+
+.create-game-form h2,
+.join-game-form h2 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Player Management */
+.players-list {
+  background-color: var(--background-secondary);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-lg);
+}
+
+.players-grid {
+  display: grid;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.player-item {
+  background-color: var(--background-primary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-info h4 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-xs);
+}
+
+.player-stats {
+  text-align: right;
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+}
+
+.add-player-form {
+  background-color: var(--background-accent);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Game Actions */
+.game-actions {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background-color: var(--background-accent);
+  border-radius: var(--border-radius);
+}
+
+.action-help {
+  color: var(--text-secondary);
+  font-size: var(--font-size-small);
+  margin-top: var(--spacing-md);
+}
+
+/* Scorecard Styles */
+.scorecard {
+  margin-bottom: var(--spacing-xl);
+}
+
+.scorecard-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: var(--spacing-md) 0;
+}
+
+.scorecard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-small);
+  background-color: var(--background-primary);
+  box-shadow: var(--shadow);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.scorecard-table th {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: var(--spacing-sm);
+  text-align: center;
+  font-weight: 600;
+  min-width: 50px;
+}
+
+.scorecard-table td {
+  padding: var(--spacing-sm);
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  min-width: 50px;
+  min-height: var(--touch-target);
+}
+
+.hole-number {
+  background-color: var(--background-secondary);
+  font-weight: 600;
+}
+
+.par {
+  background-color: var(--background-accent);
+  font-weight: 600;
+}
+
+.score-cell {
+  position: relative;
+  cursor: pointer;
+}
+
+.score-cell.under-par {
+  background-color: #e8f5e9;
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.score-cell.par {
+  background-color: #fff3e0;
+  color: var(--warning-color);
+  font-weight: 600;
+}
+
+.score-cell.over-par {
+  background-color: #ffebee;
+  color: var(--error-color);
+  font-weight: 600;
+}
+
+.score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.strokes {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.putts {
+  font-size: var(--font-size-small);
+  opacity: 0.8;
+}
+
+.total-row {
+  background-color: var(--background-secondary);
+  font-weight: 600;
+}
+
+.total-cell {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+}
+
+/* Score Entry */
+.score-entry {
+  background-color: var(--background-accent);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-top: var(--spacing-lg);
+}
+
+.score-entry-form {
+  background-color: var(--background-primary);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-top: var(--spacing-md);
+}
+
+.score-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.input-group label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.existing-score-note {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: var(--spacing-sm);
+}
+
+/* Score Summary */
+.score-summary {
+  background-color: var(--background-secondary);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-top: var(--spacing-lg);
+}
+
+.player-summaries {
+  display: grid;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.player-summary {
+  background-color: var(--background-primary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.player-score {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.player-details {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+}
+
+/* Leaderboard Styles */
+.tabs {
+  display: flex;
+  background-color: var(--background-secondary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab {
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: var(--touch-target);
+}
+
+.tab.active {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+}
+
+.tab:not(.active):hover {
+  background-color: var(--background-primary);
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--background-primary);
+  box-shadow: var(--shadow);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  margin-top: var(--spacing-md);
+}
+
+.leaderboard-table th {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+}
+
+.leaderboard-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.player-row:hover {
+  background-color: var(--background-secondary);
+}
+
+.position {
+  font-weight: 700;
+  font-size: var(--font-size-large);
+}
+
+.position.leader {
+  color: var(--warning-color);
+}
+
+.player-name {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.trend-up {
+  color: var(--success-color);
+}
+
+.trend-down {
+  color: var(--error-color);
+}
+
+.trend-same {
+  color: var(--text-secondary);
+}
+
+/* Winner Announcements */
+.winner-announcement {
+  background-color: var(--warning-color);
+  color: var(--text-light);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.winner-announcement h4 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Poker Specific */
+.poker-table {
+  font-size: var(--font-size-small);
+}
+
+.poker-summary {
+  margin-top: var(--spacing-lg);
+  background-color: var(--background-accent);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+}
+
+.poker-players {
+  display: grid;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.poker-player-summary {
+  background-color: var(--background-primary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+}
+
+/* Error and Loading States */
+.error-message {
+  background-color: var(--error-color);
+  color: var(--text-light);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-message button {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-light);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+
+.loading {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+}
+
+.loading p {
+  font-size: var(--font-size-large);
+}
+
+.no-data, .no-game {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background-color: var(--background-secondary);
+  border-radius: var(--border-radius);
+}
+
+.no-data h3, .no-game h3 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Poker Rules */
+.poker-rules {
+  background-color: var(--background-accent);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-top: var(--spacing-md);
+}
+
+.poker-rules h4 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.poker-rules ul {
+  list-style-position: inside;
+  color: var(--text-secondary);
+}
+
+.poker-rules li {
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Responsive Design - Tablet */
+@media (min-width: 768px) {
+  .app-main {
+    padding: var(--spacing-lg);
+  }
+
+  .features {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .action-buttons {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .players-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .score-inputs {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .player-summaries {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .form-actions button {
+    flex: none;
+    min-width: 150px;
+  }
+
+  .scorecard-table {
+    font-size: var(--font-size-base);
+  }
+
+  .poker-players {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .header-actions {
+    justify-content: flex-end;
+  }
+}
+
+/* Responsive Design - Desktop */
+@media (min-width: 1024px) {
+  .app-main {
+    padding: var(--spacing-xl);
+  }
+
+  .players-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .player-summaries {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .poker-players {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .create-game-form,
+  .join-game-form {
+    max-width: 600px;
+    margin: 0 auto var(--spacing-xl);
+  }
+
+  .scorecard-table-container {
+    overflow-x: visible;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .app-header,
+  .header-actions,
+  .form-actions,
+  .action-buttons,
+  button {
+    display: none !important;
+  }
+
+  .scorecard-table {
+    font-size: 12px;
+  }
+
+  body {
+    font-size: 14px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --background-primary: #121212;
+    --background-secondary: #1e1e1e;
+    --background-accent: #263238;
+    --border-color: #333333;
+  }
+
+  .scorecard-table th {
+    background-color: var(--primary-dark);
+  }
+
+  .score-cell.under-par {
+    background-color: #1b5e20;
+  }
+
+  .score-cell.par {
+    background-color: #e65100;
+  }
+
+  .score-cell.over-par {
+    background-color: #c62828;
+  }
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus indicators for keyboard navigation */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --shadow: 0 2px 4px rgba(0,0,0,0.5);
+    --border-color: #000000;
+  }
+
+  button {
+    border: 2px solid;
+  }
+}

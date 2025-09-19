@@ -1,0 +1,98 @@
+# Golf Gamez Frontend - Git Ignore
+
+# Build outputs
+build/
+dist/
+*.wasm
+wasm_exec.js
+
+# Go build cache
+.cache/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.coverprofile
+coverage.out
+coverage.html
+
+# Dependency directories
+node_modules/
+vendor/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Build tools
+.tmp/
+.temp/
+
+# Docker
+.dockerignore
+
+# Test outputs
+test-results/
+test-coverage/
+
+# WebAssembly debugging files
+*.dwarf
+
+# Local development
+local/
+dev-data/
+
+# SSL certificates (if any)
+ssl/
+*.pem
+*.key
+*.crt
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Temporary files
+*.tmp
+*.temp
+
+# Compiled binaries
+golf-gamez-frontend
+*.exe
+
+# Archive files
+*.tar.gz
+*.zip
+
+# Local configuration overrides
+config.local.json
+settings.local.json

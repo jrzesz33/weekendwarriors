@@ -1,0 +1,88 @@
+# Golf Gamez Frontend Docker Compose
+version: '3.8'
+
+services:
+  # Development service
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/build  # Anonymous volume for build directory
+    environment:
+      - ENVIRONMENT=development
+    command: ["make", "dev"]
+    networks:
+      - golf-gamez
+    depends_on:
+      - api
+
+  # Production service
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "80:80"
+    environment:
+      - ENVIRONMENT=production
+    networks:
+      - golf-gamez
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Mock API service for development
+  api:
+    image: golf-gamez-api:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8080
+      - DATABASE_URL=/data/golf_gamez.db
+      - CORS_ORIGINS=*
+    volumes:
+      - api-data:/data
+    networks:
+      - golf-gamez
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx reverse proxy (for production)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend-prod
+      - api
+    networks:
+      - golf-gamez
+    profiles:
+      - production
+
+volumes:
+  api-data:
+    driver: local
+
+networks:
+  golf-gamez:
+    driver: bridge
+    name: golf-gamez-network

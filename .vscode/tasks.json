@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build_with_make",
+            "type": "shell",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/frontend"
+            },
+            "args": [
+                "build" // Or other make targets like "clean", "program", etc.
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Runs make to build the front end"
+        }
+    ]
+}
