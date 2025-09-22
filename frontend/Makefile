@@ -71,7 +71,8 @@ run: build serve ## Build and serve production version
 serve: ## Serve the built application
 	@echo "🚀 Starting development server on http://localhost:$(DEV_PORT)"
 	@echo "📡 Make sure the API server is running on http://localhost:$(API_PORT)"
-	@go run ./cmd/server/main.go -port=$(DEV_PORT) -dir=$(BUILD_DIR)
+	@go run ./cmd/server/main.go -port=$(DEV_PORT) -dir=$(BUILD_DIR) &
+	@../bin/golf-gamez
 
 serve-production: ## Serve production build
 	@echo "🚀 Starting production server on http://localhost:$(DEV_PORT)"
@@ -137,12 +138,14 @@ clean-all: clean ## Clean everything including dependencies
 check: fmt lint test ## Run all quality checks
 
 # Docker targets
+build-container: build docker-build docker-run ## Build WASM, Go App and Docker
+
 docker-build: ## Build Docker image
 	@echo "🐳 Building Docker image..."
 	@docker build -t golf-gamez-frontend .
 
 docker-run: docker-build ## Run Docker container
-	@echo "🐳 Running Docker container..."
+	@echo "🐳 Running Docker container... on $(DEV_PORT)"
 	@docker run -p $(DEV_PORT):80 golf-gamez-frontend
 
 # Deployment targets
@@ -227,3 +230,4 @@ analyze: build ## Analyze WebAssembly binary
 quick: build-dev ## Quick development build (alias for build-dev)
 
 prod: optimize ## Production build with optimizations
+

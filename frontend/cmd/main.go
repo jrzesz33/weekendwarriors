@@ -39,7 +39,7 @@ type GolfGamezApp struct {
 	menuOpen       bool
 
 	// Scorecard state
-	currentHole    int
+	currentHole int
 
 	// Form state
 	gameToken      string
@@ -60,7 +60,7 @@ func (g *GolfGamezApp) OnMount(ctx app.Context) {
 func (g *GolfGamezApp) handleInitialRoute(ctx app.Context) {
 	path := app.Window().Get("location").Get("pathname").String()
 	search := app.Window().Get("location").Get("search").String()
-
+	fmt.Println("URL Path: ", path)
 	switch {
 	case strings.HasPrefix(path, "/game/"):
 		// Extract game token from path
